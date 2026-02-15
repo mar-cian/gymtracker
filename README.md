@@ -47,37 +47,80 @@ Mobile-First Full-Stack Web Application for tracking workouts with a heatmap vis
 - **Database**: SQLite (stored in `gym.db`)
 - **Frontend**: Vanilla HTML/CSS/JS + Matter.js (CDN)
 
-## Production Deployment (HTTPS with giani.cc)
+## Production Deployment (Cloudflare Tunnel)
 
-To run this on your Debian server with the domain `giani.cc`:
+Since you are using Cloudflare Tunnel, you don't need to open ports on your router or manage SSL certificates on the server. Cloudflare handles all of that.
 
-1.  **Install Nginx and Certbot**
-    ```bash
-    sudo apt update
-    sudo apt install -y nginx certbot python3-certbot-nginx
-    ```
+### 1. Simplify Nginx (Optional but recommended)
+If you still want to use Nginx as a reverse proxy (e.g. for potential caching or log management), use the provided `nginx.conf`.
+It simply listens on port 80 and forwards to your app.
+```bash
+sudo cp nginx.conf /etc/nginx/sites-available/giani.cc
+sudo ln -sf /etc/nginx/sites-available/giani.cc /etc/nginx/sites-enabled/
+sudo rm /etc/nginx/sites-enabled/default  # Remove default if present
+sudo systemctl restart nginx
+```
+*Note: You can also skip Nginx entirely and point the Tunnel directly to `http://localhost:3000`.*
 
-2.  **Setup Nginx Configuration**
-    Copy the provided `nginx.conf` to the Nginx sites directory:
-    ```bash
-    sudo cp nginx.conf /etc/nginx/sites-available/giani.cc
-    sudo ln -s /etc/nginx/sites-available/giani.cc /etc/nginx/sites-enabled/
-    sudo nginx -t  # Test configuration
-    sudo systemctl restart nginx
-    ```
+### 2. Install Cloudflared
+On your Debian server:
+```bash
+# Add Cloudflare GPG key
+curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg | sudo tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null
 
-3.  **Enable HTTPS (SSL)**
-    Run Certbot to automatically obtain and configure SSL certificates:
-    ```bash
-    sudo certbot --nginx -d giani.cc -d www.giani.cc
-    ```
-    Follow the prompts. Certbot will automatically update your Nginx config to force HTTPS.
+# Add Repo
+echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared bookworm main' | sudo tee /etc/apt/sources.list.d/cloudflared.list
 
-4.  **Keep App Running**
-    Use `pm2` to keep the Node.js app running in the background:
-    ```bash
-    sudo npm install -g pm2
-    pm2 start server.js --name "gym-tracker"
-    pm2 save
-    pm2 startup
-    ```
+# Install
+sudo apt-get update && sudo apt-get install cloudflared
+```
+
+### 3. Authenticate & Create Tunnel
+```bash
+# Login (opens a URL, authorize with your giani.cc account)
+cloudflared tunnel login
+
+# Create a tunnel (replace NAME with whatever you want, e.g., 'gym-server')
+cloudflared tunnel create gym-server
+```
+*Save the Tunnel ID shown in the output!*
+
+### 4. Configure Tunnel
+Create a configuration file `~/.cloudflared/config.yml`:
+```yaml
+tunnel: <Tunnel-UUID>
+credentials-file: /root/.cloudflared/<Tunnel-UUID>.json
+
+ingress:
+  # If using Nginx on port 80:
+  - hostname: giani.cc
+    service: http://localhost:80
+  # OR if connecting directly to Node.js app:
+  # - hostname: giani.cc
+  #   service: http://localhost:3000
+    
+  # Catch-all
+  - service: http_status:404
+```
+
+### 5. Route DNS
+Point your domain to the tunnel:
+```bash
+cloudflared tunnel route dns gym-server giani.cc
+```
+
+### 6. Run as Service
+Install it as a system service so it starts automatically:
+```bash
+sudo cloudflared service install
+sudo systemctl start cloudflared
+sudo systemctl enable cloudflared
+```
+
+### 7. Node.js App Management
+Don't forget to keep your app running:
+```bash
+pm2 start server.js --name "gym-tracker"
+pm2 save
+pm2 startup
+```
