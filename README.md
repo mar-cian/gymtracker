@@ -61,6 +61,31 @@ If you prefer to route through Nginx (e.g. for logs), use the provided `nginx.co
 3. Restart: `sudo systemctl restart nginx`
 4. Point your Tunnel Service to: `http://localhost:80`
 
+### Optional: Manual SSL (If not using Tunnel SSL)
+If you want to use your own certificates (e.g. from Let's Encrypt) on the server:
+
+1.  **Modify** `/etc/nginx/sites-available/gymtracker`:
+    ```nginx
+    server {
+        listen 443 ssl;
+        server_name giani.cc;
+
+        ssl_certificate /etc/letsencrypt/live/giani.cc/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/giani.cc/privkey.pem;
+
+        location / {
+            proxy_pass http://localhost:3000;
+            # ... (keep other proxy settings)
+        }
+    }
+    server {
+        listen 80;
+        server_name giani.cc;
+        return 301 https://$host$request_uri;
+    }
+    ```
+2.  **Restart Nginx**: `sudo systemctl restart nginx`
+
 ### Node.js App Management (Keep it running)
 Use `pm2` to keep the app running in the background:
 ```bash
