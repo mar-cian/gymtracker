@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,8 +12,10 @@
             --text-color: #c9d1d9;
             --border-color: #30363d;
             --card-bg: #161b22;
-            --color-cardio: #1f6feb; /* Blue */
-            --color-strength: #238636; /* Green */
+            --color-cardio: #1f6feb;
+            /* Blue */
+            --color-strength: #238636;
+            /* Green */
             --cell-empty: #161b22;
             --cell-size: 14px;
             --cell-gap: 3px;
@@ -24,7 +27,8 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 20px;
-            overflow-x: hidden; /* Prevent body scroll from gravity elements initially */
+            overflow-x: hidden;
+            /* Prevent body scroll from gravity elements initially */
         }
 
         h1 {
@@ -46,6 +50,24 @@
             margin-bottom: 15px;
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-add {
+            background-color: var(--color-strength);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 15px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-add:hover {
+            opacity: 0.9;
         }
 
         /* Scrollable container for mobile */
@@ -69,19 +91,22 @@
             background-color: var(--cell-empty);
             border-radius: 2px;
             cursor: pointer;
-            border: 1px solid rgba(255,255,255,0.05);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .day-cell:hover {
-            border-color: rgba(255,255,255,0.5);
+            border-color: rgba(255, 255, 255, 0.5);
         }
 
         /* Modal */
         #modal {
             display: none;
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
             justify-content: center;
             align-items: center;
             z-index: 1000;
@@ -106,14 +131,16 @@
             margin-bottom: 5px;
         }
 
-        select, input {
+        select,
+        input {
             width: 100%;
             padding: 10px;
             background: #0d1117;
             border: 1px solid var(--border-color);
             color: var(--text-color);
             border-radius: 4px;
-            font-size: 16px; /* Prevent zoom on iOS */
+            font-size: 16px;
+            /* Prevent zoom on iOS */
             box-sizing: border-box;
         }
 
@@ -133,16 +160,34 @@
             font-weight: bold;
         }
 
-        .btn-save { background: var(--color-strength); color: #fff; }
-        .btn-cancel { background: var(--border-color); color: var(--text-color); }
+        .btn-save {
+            background: var(--color-strength);
+            color: #fff;
+        }
+
+        .btn-cancel {
+            background: var(--border-color);
+            color: var(--text-color);
+        }
 
         /* Mobile specific adjustments */
         @media (max-width: 600px) {
-            body { padding: 10px; }
-            .user-section { padding: 15px; }
-            h1 { font-size: 1.25rem; }
+            body {
+                padding: 10px;
+            }
+
+            .user-section {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 1.25rem;
+            }
+
             /* Make heatmap cells slightly larger on mobile for touch */
-            :root { --cell-size: 12px; } 
+            :root {
+                --cell-size: 12px;
+            }
         }
 
         /* Hidden input for cheat code on mobile */
@@ -151,9 +196,9 @@
             position: absolute;
             top: 0;
         }
-
     </style>
 </head>
+
 <body>
 
     <h1 id="main-title">Gym Tracker 2026 🏋️</h1>
@@ -164,11 +209,13 @@
     <!-- Modal -->
     <div id="modal">
         <div class="modal-content">
-            <h3 id="modal-date">Datum</h3>
+            <h3 id="modal-title">Eintrag hinzufügen</h3>
             <form id="workout-form">
                 <input type="hidden" id="entry-user">
-                <input type="hidden" id="entry-date">
-                
+
+                <label>Datum</label>
+                <input type="date" id="entry-date" required>
+
                 <label>Typ</label>
                 <select id="entry-type">
                     <option value="strength">Krafttraining (Grün)</option>
@@ -176,7 +223,7 @@
                 </select>
 
                 <label>Dauer (Minuten)</label>
-                <input type="number" id="entry-duration" placeholder="z.B. 45" min="1">
+                <input type="number" id="entry-duration" placeholder="z.B. 45" min="1" required>
 
                 <div class="btn-group">
                     <button type="button" class="btn-cancel" onclick="closeModal()">Abbrechen</button>
@@ -186,250 +233,270 @@
         </div>
     </div>
 
-<script>
-    const users = ['Giani', 'Angie', 'Sämi'];
-    const year = 2026;
-    let workouts = [];
+    <script>
+        const users = ['Giani', 'Angie', 'Sämi'];
+        const year = 2026;
+        let workouts = [];
 
-    // Initialize UI
-    const app = document.getElementById('app');
+        // Initialize UI
+        const app = document.getElementById('app');
 
-    // Helper to format date YYYY-MM-DD
-    function formatDate(date) {
-        return date.toISOString().split('T')[0];
-    }
-
-    // Initialize Calendar Data
-    function getDaysInYear(year) {
-        const date = new Date(year, 0, 1);
-        const days = [];
-        while (date.getFullYear() === year) {
-            days.push(new Date(date));
-            date.setDate(date.getDate() + 1);
+        // Helper to format date YYYY-MM-DD
+        function formatDate(date) {
+            return date.toISOString().split('T')[0];
         }
-        return days;
-    }
 
-    const days2026 = getDaysInYear(year);
-
-    // Build DOM
-    users.forEach(user => {
-        const section = document.createElement('div');
-        section.className = 'user-section physics-body'; // Class for Matter.js later
-        section.innerHTML = `<div class="user-title physics-body">${user}</div>`;
-
-        const container = document.createElement('div');
-        container.className = 'heatmap-container';
-
-        const heatmap = document.createElement('div');
-        heatmap.className = 'heatmap';
-        
-        days2026.forEach(day => {
-            const dateStr = formatDate(day);
-            const cell = document.createElement('div');
-            cell.className = 'day-cell physics-body';
-            cell.dataset.date = dateStr;
-            cell.dataset.user = user;
-            cell.onclick = () => openModal(user, dateStr);
-            heatmap.appendChild(cell);
-        });
-
-        container.appendChild(heatmap);
-        section.appendChild(container);
-        app.appendChild(section);
-    });
-
-    // Fetch Data
-    async function loadWorkouts() {
-        try {
-            const res = await fetch('/api/workouts');
-            const data = await res.json();
-            workouts = data.workouts || [];
-            renderHeatmaps();
-        } catch (e) {
-            console.error('Failed to load workouts', e);
-        }
-    }
-
-    function renderHeatmaps() {
-        // Clear all styles first
-        document.querySelectorAll('.day-cell').forEach(cell => {
-            cell.style.backgroundColor = 'var(--cell-empty)';
-            cell.style.opacity = '1';
-        });
-
-        workouts.forEach(w => {
-            // Find cell
-            const cell = document.querySelector(`.day-cell[data-user="${w.user}"][data-date="${w.date}"]`);
-            if (cell) {
-                // Color
-                let colorVar = w.type === 'cardio' ? 'var(--color-cardio)' : 'var(--color-strength)';
-                cell.style.backgroundColor = colorVar;
-
-                // Opacity based on duration (20 min -> 0.4, 90+ min -> 1.0)
-                let opacity = Math.min(Math.max(w.duration / 90, 0.3), 1);
-                cell.style.opacity = opacity;
-                cell.title = `${w.type}: ${w.duration} min`;
+        // Initialize Calendar Data
+        function getDaysInYear(year) {
+            const date = new Date(year, 0, 1);
+            const days = [];
+            while (date.getFullYear() === year) {
+                days.push(new Date(date));
+                date.setDate(date.getDate() + 1);
             }
-        });
-    }
+            return days;
+        }
 
-    // Modal Logic
-    function openModal(user, dateStr) {
-        document.getElementById('modal').style.display = 'flex';
-        document.getElementById('modal-date').innerText = `${user} - ${dateStr}`;
-        document.getElementById('entry-user').value = user;
-        document.getElementById('entry-date').value = dateStr;
-        document.getElementById('entry-duration').value = '';
-        document.getElementById('entry-duration').focus();
-    }
+        const days2026 = getDaysInYear(year);
 
-    function closeModal() {
-        document.getElementById('modal').style.display = 'none';
-    }
+        // Build DOM
+        users.forEach(user => {
+            const section = document.createElement('div');
+            section.className = 'user-section physics-body'; // Class for Matter.js later
 
-    document.getElementById('workout-form').onsubmit = async (e) => {
-        e.preventDefault();
-        const user = document.getElementById('entry-user').value;
-        const date = document.getElementById('entry-date').value;
-        const type = document.getElementById('entry-type').value;
-        const duration = parseInt(document.getElementById('entry-duration').value);
+            // Title with Add Button
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'user-title physics-body';
+            titleDiv.innerHTML = `<span>${user}</span>`;
 
-        if (!duration) return;
+            const aadBtn = document.createElement('button');
+            aadBtn.className = 'btn-add';
+            aadBtn.innerText = '+ Eintrag';
+            aadBtn.onclick = () => openModal(user);
+            titleDiv.appendChild(aadBtn);
 
-        try {
-            const res = await fetch('/api/workouts', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user, date, type, duration })
+            section.appendChild(titleDiv);
+
+            const container = document.createElement('div');
+            container.className = 'heatmap-container';
+
+            const heatmap = document.createElement('div');
+            heatmap.className = 'heatmap';
+
+            days2026.forEach(day => {
+                const dateStr = formatDate(day);
+                const cell = document.createElement('div');
+                cell.className = 'day-cell physics-body';
+                cell.dataset.date = dateStr;
+                cell.dataset.user = user;
+                cell.onclick = () => openModal(user, dateStr);
+                heatmap.appendChild(cell);
             });
 
-            if (res.ok) {
-                const newWorkout = await res.json();
-                workouts.push(newWorkout); // Optimistic update or reload? Let's just push and re-render.
-                // Actually, let's just reload to be safe or re-fetch
-                loadWorkouts(); 
-                closeModal();
-            }
-        } catch (err) {
-            alert('Fehler beim Speichern');
-        }
-    }
-
-    loadWorkouts();
-
-    // --- ANTIGRAVITY EASTER EGG ---
-    let cheatCode = [];
-    const secret = "gravity";
-    let gravityEnabled = false;
-
-    window.addEventListener('keydown', (e) => {
-        if(gravityEnabled) return;
-        cheatCode.push(e.key);
-        if (cheatCode.length > secret.length) cheatCode.shift();
-        if (cheatCode.join('').toLowerCase().includes(secret)) {
-            enableGravity();
-        }
-    });
-
-    // Mobile cheat trigger via hidden input
-    document.getElementById('main-title').addEventListener('click', () => {
-        document.getElementById('cheat-input').focus();
-    });
-
-    document.getElementById('cheat-input').addEventListener('input', (e) => {
-        if(gravityEnabled) return;
-        if (e.target.value.toLowerCase().includes(secret)) {
-            enableGravity();
-            e.target.blur();
-        }
-    });
-
-    function enableGravity() {
-        gravityEnabled = true;
-        alert("ANTIGRAVITY ACTIVATED! 🌌");
-
-        // Matter.js setup
-        const Engine = Matter.Engine,
-              Render = Matter.Render,
-              Runner = Matter.Runner,
-              Bodies = Matter.Bodies,
-              Composite = Matter.Composite,
-              Mouse = Matter.Mouse,
-              MouseConstraint = Matter.MouseConstraint;
-
-        const engine = Engine.create();
-        const world = engine.world;
-        
-        // Create canvas over everything
-        const render = Render.create({
-            element: document.body,
-            engine: engine,
-            options: {
-                width: window.innerWidth,
-                height: window.innerHeight,
-                wireframes: false,
-                background: 'transparent' // Let CSS background show
-            }
+            container.appendChild(heatmap);
+            section.appendChild(container);
+            app.appendChild(section);
         });
 
-        // Hide original DOM elements but keep them for reference if needed? 
-        // Better: replace them with bodies matching their size/position
-        
-        // Let's take all "physics-body" elements and turn them into matter bodies
-        const elements = document.querySelectorAll('.physics-body');
-        const bodies = [];
+        // Fetch Data
+        async function loadWorkouts() {
+            try {
+                const res = await fetch('/api/workouts');
+                const data = await res.json();
+                workouts = data.workouts || [];
+                renderHeatmaps();
+            } catch (e) {
+                console.error('Failed to load workouts', e);
+            }
+        }
 
-        elements.forEach(el => {
-            const rect = el.getBoundingClientRect();
-            // Get color from element
-            const style = window.getComputedStyle(el);
-            const color = style.backgroundColor;
-            
-            // Create box
-            const body = Bodies.rectangle(
-                rect.x + rect.width/2, 
-                rect.y + rect.height/2, 
-                rect.width, 
-                rect.height, 
-                { 
-                    render: { fillStyle: color, strokeStyle: '#fff', lineWidth: 1 },
-                    restitution: 0.9 
+        function renderHeatmaps() {
+            // Clear all styles first
+            document.querySelectorAll('.day-cell').forEach(cell => {
+                cell.style.backgroundColor = 'var(--cell-empty)';
+                cell.style.opacity = '1';
+            });
+
+            workouts.forEach(w => {
+                // Find cell
+                const cell = document.querySelector(`.day-cell[data-user="${w.user}"][data-date="${w.date}"]`);
+                if (cell) {
+                    // Color
+                    let colorVar = w.type === 'cardio' ? 'var(--color-cardio)' : 'var(--color-strength)';
+                    cell.style.backgroundColor = colorVar;
+
+                    // Opacity based on duration (20 min -> 0.4, 90+ min -> 1.0)
+                    let opacity = Math.min(Math.max(w.duration / 90, 0.3), 1);
+                    cell.style.opacity = opacity;
+                    cell.title = `${w.type}: ${w.duration} min`;
                 }
-            );
-            bodies.push(body);
-            // Hide original
-            el.style.visibility = 'hidden';
-            // Also hide containers borders to clean up view
-        });
+            });
+        }
 
-        // Add walls
-        const wallOptions = { isStatic: true, render: { fillStyle: '#30363d' } };
-        const ground = Bodies.rectangle(window.innerWidth/2, window.innerHeight + 30, window.innerWidth, 60, wallOptions);
-        const leftWall = Bodies.rectangle(-30, window.innerHeight/2, 60, window.innerHeight, wallOptions);
-        const rightWall = Bodies.rectangle(window.innerWidth+30, window.innerHeight/2, 60, window.innerHeight, wallOptions);
+        // Modal Logic
+        function openModal(user, dateStr = null) {
+            document.getElementById('modal').style.display = 'flex';
+            document.getElementById('modal-title').innerText = `${user} - Eintrag`;
+            document.getElementById('entry-user').value = user;
 
-        Composite.add(world, [...bodies, ground, leftWall, rightWall]);
+            // Set date: provided date OR today
+            const targetDate = dateStr || new Date().toISOString().split('T')[0];
+            document.getElementById('entry-date').value = targetDate;
 
-        // Mouse control
-        const mouse = Mouse.create(render.canvas);
-        const mouseConstraint = MouseConstraint.create(engine, {
-            mouse: mouse,
-            constraint: {
-                stiffness: 0.2,
-                render: { visible: false }
+            document.getElementById('entry-duration').value = '';
+            // Focus duration if date is already set via click, otherwise let user check date
+            if (dateStr) {
+                document.getElementById('entry-duration').focus();
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        document.getElementById('workout-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const user = document.getElementById('entry-user').value;
+            const date = document.getElementById('entry-date').value;
+            const type = document.getElementById('entry-type').value;
+            const duration = parseInt(document.getElementById('entry-duration').value);
+
+            if (!duration) return;
+
+            try {
+                const res = await fetch('/api/workouts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user, date, type, duration })
+                });
+
+                if (res.ok) {
+                    const newWorkout = await res.json();
+                    workouts.push(newWorkout); // Optimistic update or reload? Let's just push and re-render.
+                    // Actually, let's just reload to be safe or re-fetch
+                    loadWorkouts();
+                    closeModal();
+                }
+            } catch (err) {
+                alert('Fehler beim Speichern');
+            }
+        }
+
+        loadWorkouts();
+
+        // --- ANTIGRAVITY EASTER EGG ---
+        let cheatCode = [];
+        const secret = "gravity";
+        let gravityEnabled = false;
+
+        window.addEventListener('keydown', (e) => {
+            if (gravityEnabled) return;
+            cheatCode.push(e.key);
+            if (cheatCode.length > secret.length) cheatCode.shift();
+            if (cheatCode.join('').toLowerCase().includes(secret)) {
+                enableGravity();
             }
         });
-        Composite.add(world, mouseConstraint);
-        render.mouse = mouse;
 
-        Render.run(render);
-        const runner = Runner.create();
-        Runner.run(runner, engine);
+        // Mobile cheat trigger via hidden input
+        document.getElementById('main-title').addEventListener('click', () => {
+            document.getElementById('cheat-input').focus();
+        });
 
-        // Hide other UI
-        document.querySelector('.heatmap-container').style.overflow = 'visible'; // allow falling out if logic wasn't replacing
-    }
-</script>
+        document.getElementById('cheat-input').addEventListener('input', (e) => {
+            if (gravityEnabled) return;
+            if (e.target.value.toLowerCase().includes(secret)) {
+                enableGravity();
+                e.target.blur();
+            }
+        });
+
+        function enableGravity() {
+            gravityEnabled = true;
+            alert("ANTIGRAVITY ACTIVATED! 🌌");
+
+            // Matter.js setup
+            const Engine = Matter.Engine,
+                Render = Matter.Render,
+                Runner = Matter.Runner,
+                Bodies = Matter.Bodies,
+                Composite = Matter.Composite,
+                Mouse = Matter.Mouse,
+                MouseConstraint = Matter.MouseConstraint;
+
+            const engine = Engine.create();
+            const world = engine.world;
+
+            // Create canvas over everything
+            const render = Render.create({
+                element: document.body,
+                engine: engine,
+                options: {
+                    width: window.innerWidth,
+                    height: window.innerHeight,
+                    wireframes: false,
+                    background: 'transparent' // Let CSS background show
+                }
+            });
+
+            // Hide original DOM elements but keep them for reference if needed? 
+            // Better: replace them with bodies matching their size/position
+
+            // Let's take all "physics-body" elements and turn them into matter bodies
+            const elements = document.querySelectorAll('.physics-body');
+            const bodies = [];
+
+            elements.forEach(el => {
+                const rect = el.getBoundingClientRect();
+                // Get color from element
+                const style = window.getComputedStyle(el);
+                const color = style.backgroundColor;
+
+                // Create box
+                const body = Bodies.rectangle(
+                    rect.x + rect.width / 2,
+                    rect.y + rect.height / 2,
+                    rect.width,
+                    rect.height,
+                    {
+                        render: { fillStyle: color, strokeStyle: '#fff', lineWidth: 1 },
+                        restitution: 0.9
+                    }
+                );
+                bodies.push(body);
+                // Hide original
+                el.style.visibility = 'hidden';
+                // Also hide containers borders to clean up view
+            });
+
+            // Add walls
+            const wallOptions = { isStatic: true, render: { fillStyle: '#30363d' } };
+            const ground = Bodies.rectangle(window.innerWidth / 2, window.innerHeight + 30, window.innerWidth, 60, wallOptions);
+            const leftWall = Bodies.rectangle(-30, window.innerHeight / 2, 60, window.innerHeight, wallOptions);
+            const rightWall = Bodies.rectangle(window.innerWidth + 30, window.innerHeight / 2, 60, window.innerHeight, wallOptions);
+
+            Composite.add(world, [...bodies, ground, leftWall, rightWall]);
+
+            // Mouse control
+            const mouse = Mouse.create(render.canvas);
+            const mouseConstraint = MouseConstraint.create(engine, {
+                mouse: mouse,
+                constraint: {
+                    stiffness: 0.2,
+                    render: { visible: false }
+                }
+            });
+            Composite.add(world, mouseConstraint);
+            render.mouse = mouse;
+
+            Render.run(render);
+            const runner = Runner.create();
+            Runner.run(runner, engine);
+
+            // Hide other UI
+            document.querySelector('.heatmap-container').style.overflow = 'visible'; // allow falling out if logic wasn't replacing
+        }
+    </script>
 </body>
+
 </html>
