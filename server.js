@@ -41,6 +41,18 @@ app.get('/api/workouts', (req, res) => {
     });
 });
 
+// Get current user from CF Access
+app.get('/api/me', (req, res) => {
+    const email = req.headers['cf-access-authenticated-user-email'] || '';
+    
+    let user = null;
+    if (email.toLowerCase().startsWith('giani')) user = 'Giani';
+    else if (email.toLowerCase().startsWith('angie')) user = 'Angie';
+    else if (email.toLowerCase().startsWith('sämi') || email.toLowerCase().startsWith('saemi')) user = 'Sämi';
+    
+    res.json({ email, user });
+});
+
 // Add a workout
 app.post('/api/workouts', (req, res) => {
     const { user, date, type, duration } = req.body;

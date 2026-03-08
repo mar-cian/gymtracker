@@ -235,15 +235,19 @@
 
     <script>
         const users = ['Giani', 'Angie', 'Sämi'];
-        const year = 2026;
+        const year = new Date().getFullYear();
         let workouts = [];
+        let currentUser = null;
 
         // Initialize UI
         const app = document.getElementById('app');
 
-        // Helper to format date YYYY-MM-DD
+        // Helper to format date local YYYY-MM-DD
         function formatDate(date) {
-            return date.toISOString().split('T')[0];
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
         }
 
         // Initialize Calendar Data
@@ -271,6 +275,7 @@
 
             const aadBtn = document.createElement('button');
             aadBtn.className = 'btn-add';
+            aadBtn.dataset.btnUser = user;
             aadBtn.innerText = '+ Eintrag';
             aadBtn.onclick = () => openModal(user);
             titleDiv.appendChild(aadBtn);
@@ -382,6 +387,27 @@
             }
         }
 
+        // CF Zero Trust: Fetch user and hide buttons if needed
+        async function fetchUser() {
+            try {
+                const res = await fetch('/api/me');
+                if (res.ok) {
+                    const data = await res.json();
+                    currentUser = data.user;
+                    if (currentUser) {
+                        document.querySelectorAll('.btn-add').forEach(btn => {
+                            if (btn.dataset.btnUser !== currentUser) {
+                                btn.style.display = 'none';
+                            }
+                        });
+                    }
+                }
+            } catch (e) {
+                console.warn('Could not fetch CF access user', e);
+            }
+        }
+        
+        fetchUser();
         loadWorkouts();
 
         // --- ANTIGRAVITY EASTER EGG ---
